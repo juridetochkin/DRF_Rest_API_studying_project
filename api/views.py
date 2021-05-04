@@ -21,16 +21,6 @@ class PostViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    # def perform_update(self, serializer):
-    #     if not serializer.instance.author == self.request.user:
-    #         raise PermissionDenied()
-    #     serializer.save()
-    #
-    # def perform_destroy(self, instance):
-    #     if not instance.author == self.request.user:
-    #         raise PermissionDenied()
-    #     instance.delete()
-
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
@@ -45,13 +35,3 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, post_id=self.kwargs['post_pk'])
-
-    # def perform_update(self, serializer):
-    #     if not serializer.instance.author == self.request.user:
-    #         raise PermissionDenied
-    #     serializer.save()
-    #
-    # def perform_destroy(self, instance):
-    #     if not instance.author == self.request.user:
-    #         raise PermissionDenied
-    #     instance.delete()
