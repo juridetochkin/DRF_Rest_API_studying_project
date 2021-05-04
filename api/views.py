@@ -1,32 +1,41 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import SAFE_METHODS, BasePermission, IsAuthenticated
 
 from posts.models import Post, Comment
 from .serializers import PostSerializer, CommentSerializer
 
 
+class OnlyAuthorCanEditPermission(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        return bool(request.user == obj.author)
+
+
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    permission_classes = (IsAuthenticated, OnlyAuthorCanEditPermission)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def perform_update(self, serializer):
-        if not serializer.instance.author == self.request.user:
-            raise PermissionDenied()
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        if not instance.author == self.request.user:
-            raise PermissionDenied()
-        instance.delete()
+    # def perform_update(self, serializer):
+    #     if not serializer.instance.author == self.request.user:
+    #         raise PermissionDenied()
+    #     serializer.save()
+    #
+    # def perform_destroy(self, instance):
+    #     if not instance.author == self.request.user:
+    #         raise PermissionDenied()
+    #     instance.delete()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    permission_classes = (IsAuthenticated, OnlyAuthorCanEditPermission,)
 
     def get_queryset(self, *args, **kwargs):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_pk'))
@@ -37,13 +46,12 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, post_id=self.kwargs['post_pk'])
 
-    def perform_update(self, serializer):
-        if not serializer.instance.author == self.request.user:
-            raise PermissionDenied
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        if not instance.author == self.request.user:
-            raise PermissionDenied
-        instance.delete()
-
+    # def perform_update(self, serializer):
+    #     if not serializer.instance.author == self.request.user:
+    #         raise PermissionDenied
+    #     serializer.save()
+    #
+    # def perform_destroy(self, instance):
+    #     if not instance.author == self.request.user:
+    #         raise PermissionDenied
+    #     instance.delete()
