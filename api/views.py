@@ -25,13 +25,12 @@ class PostViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticated, OnlyAuthorCanEditPermission,)
+    permission_classes = (IsAuthenticated, OnlyAuthorCanEditPermission)
 
-    def get_queryset(self, *args, **kwargs):
+    def get_queryset(self, *args, **kwargs):  # TODO Refactor routing complexity
         post = get_object_or_404(Post, pk=self.kwargs.get('post_pk'))
-        if 'pk' not in self.kwargs:
-            return self.queryset.filter(post=post)
-        return self.queryset.filter(post=post, pk=self.kwargs.get('pk'))
+        pk = self.kwargs.get('pk') or None
+        return self.queryset.filter(post=post, pk=pk) if pk else self.queryset.filter(post=post)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, post_id=self.kwargs['post_pk'])
